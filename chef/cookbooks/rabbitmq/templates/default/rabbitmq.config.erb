@@ -1,0 +1,11 @@
+[
+  {rabbit, [
+    {log_levels, [{autocluster, info}, {connection, info}]}
+  ]},
+  {autocluster, [
+    {log_level, debug},
+    {backend, aws},
+    {aws_autoscaling, true},
+    {aws_ec2_region, "<%= @node['aws_region'] %>"}
+  ]}
+].

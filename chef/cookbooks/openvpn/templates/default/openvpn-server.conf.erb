@@ -1,0 +1,22 @@
+port <%= @port %>
+proto <%= @protocol %>
+dev tun
+
+ca easy-rsa/keys/ca.crt
+cert easy-rsa/keys/server.crt
+key easy-rsa/keys/server.key  # This file should be kept secret
+dh easy-rsa/keys/dh2048.pem
+
+server <%= @server_ip_block %> <%= @server_netmask %>
+
+ifconfig-pool-persist ipp.txt
+push "route <%= @route_ip_block %> <%= @route_netmask %>"
+
+keepalive 3 10
+comp-lzo
+persist-key
+persist-tun
+
+status openvpn-status.log
+log         /var/log/openvpn.log
+verb        6

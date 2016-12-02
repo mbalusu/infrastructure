@@ -1,0 +1,58 @@
+terraform destroy -var-file credentials
+terraform apply -var-file credentials
+terraform get -var-file credentials
+terraform get -update=true -var-file credentials
+
+process monitoring - monit,runit
+application availability - sensu,nagios,prometheus
+newrelic,pingdom,datadog,sysdig
+
+log aggrigation - elk (elasticseach, logstash, kibana)
+splunk,loggly,scalyr
+
+dcos by mesosphere
+TODO:
+------
+1. mongodb replicaSet name should be "fxstar"
+2. Password for mongodb
+3. Password for rabbitmq
+4. Can we externalize following resource items to high level common variable.
+	PROD Region
+	DR Region
+	Public Subnet AZ1
+	Public Subnet AZ2
+	Private Subnet AZ1
+	Private Subnet AZ2
+	Private Subnet AZ3
+	
+##### SITE 2 SITE VPN CONNECTION ####
+ssh-keygen -t rsa -b 4096 -C "murthy@swapstech.com"
+1. Login to PROD VPN
+2. sudo -s
+3. cd /etc/openvpn/
+3. vi update client.conf - REPLACE_THIS_WITH_REMOTE_VPN_HOST_IP <- DR VPN server IP
+4. Carry the about steps in DR VPN server
+mkdir /etc/openvpn/easy-rsa/keys/client
+5. Copy ca.crt, DR.crt, DR.key to PROD /etc/openvpn/easy-rsa/keys/client
+6. Copy ca.crt, Production.crt, Production.key to DR /etc/openvpn/easy-rsa/keys/client
+7. cd /etc/openvpn; openvpn --config /etc/openvpn/client.conf  > /var/log/openvpn-client.log &
+troubleshooting - cd /etc/openvpn; openvpn --config /etc/openvpn/server.conf --writepid /var/run/openvpn.pid &
+##### Mongo Clustering ####
+1. Go to Mongo Master in Production
+2. Connect to mongo
+3. Check the replicaset status "rs.status()"
+4. Add DR mongo server -> rs.add("DR SERVER PRIVATE IP")
+
+
+5. Create database admin and db user on PRIMARY node.
+	5.1 Create User Admin for any database
+	/>  use admin
+	/>  db.createUser( { user: "admin", pwd: "$waps@dmin", roles: [ "root"] } )
+	You can login to mongodb console
+	/> db.auth("admin","$waps@dmin");
+	
+	5.2 Create fxstar user 
+	/> use fxstar
+	/> db.createUser({ user: "manub_fxstar_prod", pwd: "manub_prod_prod", roles: [ "dbAdmin"] })
+	db.auth("manub_fxstar_prod","manub_prod_prod")
+	

@@ -1,0 +1,15 @@
+client
+dev tun
+proto tcp
+remote REPLACE_THIS_WITH_REMOTE_VPN_HOST_IP 1194
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ca easy-rsa/keys/client/ca.crt
+cert easy-rsa/keys/client/<%= @remote_environment %>.crt
+key easy-rsa/keys/client/<%= @remote_environment %>.key
+ns-cert-type server
+comp-lzo
+verb 3
+keepalive 3 10
