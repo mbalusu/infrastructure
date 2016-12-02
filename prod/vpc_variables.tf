@@ -3,11 +3,11 @@ variable "environment" {
 }
 
 variable "aws_region" {
-  default = "us-east-1"
+  default = "us-west-1"
 }
 
 variable "infra_regions" {
-  default = "us-east-1,us-east-2"
+  default = "us-west-1,us-west-2"
 }
 
 variable "route53_zone_private" {

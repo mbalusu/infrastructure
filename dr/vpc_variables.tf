@@ -3,11 +3,11 @@ variable "environment" {
 }
 
 variable "aws_region" {
-  default = "us-east-2"
+  default = "us-west-2"
 }
 
 variable "infra_regions" {
-  default = "us-east-1,us-east-2"
+  default = "us-west-1,us-west-2"
 }
 
 variable "route53_zone_private" {
@@ -38,9 +38,9 @@ variable "public_subnets" {
   type = "map"
   default = {
     az1.cidr = "10.181.0.0/24",
-    az1.availability_zone = "us-east-1b",
+    az1.availability_zone = "us-west-2a",
     az2.cidr = "10.181.1.0/24",
-    az2.availability_zone = "us-east-1c"
+    az2.availability_zone = "us-west-2b"
   }
 }
 
@@ -48,11 +48,11 @@ variable "private_subnets" {
   type = "map"
   default = {
     az1.cidr = "10.181.2.0/24",
-    az1.availability_zone = "us-east-1b",
+    az1.availability_zone = "us-west-2a",
     az2.cidr = "10.181.3.0/24",
-    az2.availability_zone = "us-east-1c",
+    az2.availability_zone = "us-west-2b",
     az3.cidr = "10.181.4.0/24",
-    az3.availability_zone = "us-east-1d"
+    az3.availability_zone = "us-west-2c"
   }
 }
 

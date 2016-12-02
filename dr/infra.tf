@@ -178,7 +178,7 @@ resource "template_file" "userdata_tomcat" {
     service = "tomcat"
     regions = "${var.infra_regions}"
     private_key = "${var.private_key}"
-    run_list = "base,sdx_tomcat"
+    run_list = "base,sdx_tomcat,sdx_tomcat::helloworld"
     openvpn_server_ip_block = "${var.openvpn_server_ip_block}"
     openvpn_server_netmask = "${var.openvpn_server_netmask}"
     openvpn_route_ip_block = "${var.openvpn_route_ip_block}"
