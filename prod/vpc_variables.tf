@@ -40,7 +40,7 @@ variable "public_subnets" {
     az1.cidr = "10.180.1.0/24",
     az1.availability_zone = "us-west-1a",
     az2.cidr = "10.180.2.0/24",
-    az2.availability_zone = "us-west-1c"
+    az2.availability_zone = "us-west-1b"
   }
 }
 
@@ -50,9 +50,9 @@ variable "private_subnets" {
     az1.cidr = "10.180.3.0/24",
     az1.availability_zone = "us-west-1a",
     az2.cidr = "10.180.4.0/24",
-    az2.availability_zone = "us-west-1c",
+    az2.availability_zone = "us-west-1b",
     az3.cidr = "10.180.5.0/24",
-    az3.availability_zone = "us-west-1c"
+    az3.availability_zone = "us-west-1b"
   }
 }
 
