@@ -1,3 +1,3 @@
-file_cache_path "/tmp/swapstech/chef"
-cookbook_path "/tmp/swapstech/chef/cookbooks"
+file_cache_path "/tmp/infrastructure/chef"
+cookbook_path "/tmp/infrastructure/chef/cookbooks"
 json_attribs "/tmp/nodes.json"
