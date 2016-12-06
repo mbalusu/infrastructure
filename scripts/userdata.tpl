@@ -23,7 +23,7 @@ ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
 # Install chef and berkshelf
 curl -L https://www.opscode.com/chef/install.sh | sudo bash
 
-cd /tmp; git clone git@github.com:maxc0d3r/swapstech.git
+cd /tmp; git clone git@github.com:mbalusu/infrastructure.git
 
 SERVICE="default"
 grep 'openvpn' /tmp/service
@@ -81,7 +81,7 @@ cat > /tmp/nodes.json <<EOF
 }
 EOF
 fi
-chef-solo -c /tmp/swapstech/chef/solo.rb -o ${run_list}
+chef-solo -c /tmp/infrastructure/chef/solo.rb -o ${run_list}
 
 grep 'mongo-master' /tmp/service
 if [ $? -eq 0 ]; then
