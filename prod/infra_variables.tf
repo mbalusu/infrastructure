@@ -48,7 +48,9 @@ variable "ebs_vol_size" {
 variable "tomcat_lb_name" {
   default = "web"
 }
-
+variable "tomcat_fxoffice_lb_name" {
+  default = "fxoffice"
+}
 variable "rabbitmq_lb_name" {
   default = "amqp"
 }
