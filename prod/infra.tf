@@ -39,7 +39,46 @@ resource "aws_security_group" "web" {
     Name = "WEBSG"
   }
 }
+resource "aws_security_group" "fxoffice" {
+  name = "fxoffice"
+  description = "Allow access to HTTP and HTTPS on loadbalancer"
 
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  },
+  ingress {
+    from_port = 8080
+    to_port = 8080
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  },
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port = -1
+    to_port = -1
+    protocol = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  vpc_id = "${aws_vpc.default.id}"
+
+  tags {
+    Name = "OFFICESG"
+  }
+}
 # Security group to allow access to all services on private network inside of VPC.
 resource "aws_security_group" "internal" {
   name = "internal"
@@ -137,7 +176,16 @@ resource "aws_alb" "tomcat-lb" {
     Environment = "production"
   }
 }
-
+resource "aws_alb" "tomcat-fxoffice-lb" {
+  name = "tomcat-lb"
+  internal = false
+  subnets = ["${aws_subnet.az1-public.id}","${aws_subnet.az2-public.id}"]
+  security_groups = ["${aws_security_group.fxoffice.id}"]
+  enable_deletion_protection = false
+  tags {
+    Environment = "production"
+  }
+}
 resource "aws_alb_listener" "tomcat-lb-li" {
   load_balancer_arn = "${aws_alb.tomcat-lb.arn}"
   port = "80"
@@ -147,7 +195,15 @@ resource "aws_alb_listener" "tomcat-lb-li" {
     type = "forward"
   }
 }
-
+resource "aws_alb_listener" "tomcat-fxoffice-lb-li" {
+  load_balancer_arn = "${aws_alb.tomcat-fxoffice-lb.arn}"
+  port = "80"
+  protocol = "HTTP"
+  default_action {
+    target_group_arn = "${aws_alb_target_group.tomcat-fxoffice-lb-tg.arn}"
+    type = "forward"
+  }
+}
 resource "aws_alb_target_group" "tomcat-lb-tg" {
   name = "tomcat-lb-tg"
   port = "8080"
@@ -160,7 +216,18 @@ resource "aws_alb_target_group" "tomcat-lb-tg" {
     interval = 30
   }
 }
-
+resource "aws_alb_target_group" "tomcat-fxoffice-lb-tg" {
+  name = "tomcat-fxoffice-lb-tg"
+  port = "8080"
+  protocol = "HTTP"
+  vpc_id = "${aws_vpc.default.id}"
+  health_check {
+    healthy_threshold = 2
+    unhealthy_threshold = 2
+    timeout = 3
+    interval = 30
+  }
+}
 resource "aws_route53_record" "tomcat-lb" {
   zone_id = "${aws_route53_zone.public_zone.zone_id}"
   name = "${var.tomcat_lb_name}"
@@ -168,7 +235,13 @@ resource "aws_route53_record" "tomcat-lb" {
   ttl = "300"
   records = ["${aws_alb.tomcat-lb.dns_name}"]
 }
-
+resource "aws_route53_record" "tomcat-fxoffice-lb" {
+  zone_id = "${aws_route53_zone.public_zone.zone_id}"
+  name = "${var.tomcat_fxoffice_lb_name}"
+  type = "CNAME"
+  ttl = "300"
+  records = ["${aws_alb.tomcat-fxoffice-lb.dns_name}"]
+}
 resource "template_file" "userdata_tomcat" {
   template = "${file("scripts/userdata.tpl")}"
   vars = {
@@ -178,7 +251,7 @@ resource "template_file" "userdata_tomcat" {
     service = "tomcat"
     regions = "${var.infra_regions}"
     private_key = "${var.private_key}"
-    run_list = "base,sdx_tomcat,sdx_tomcat::helloworld"
+    run_list = "base,sdx_tomcat,sdx_tomcat::tomcat_fxweb"
     openvpn_server_ip_block = "${var.openvpn_server_ip_block}"
     openvpn_server_netmask = "${var.openvpn_server_netmask}"
     openvpn_route_ip_block = "${var.openvpn_route_ip_block}"
@@ -204,7 +277,21 @@ resource "aws_autoscaling_group" "tomcat-asg" {
     propagate_at_launch = true
   }
 }
-
+resource "aws_autoscaling_group" "tomcat-fxoffice-asg" {
+  name = "tomcat-asg"
+  vpc_zone_identifier = ["${aws_subnet.az1-private.id}","${aws_subnet.az2-private.id}"]
+  max_size = "${lookup(var.asgs,"tomcat.max")}"
+  min_size = "${lookup(var.asgs,"tomcat.min")}"
+  desired_capacity = "${lookup(var.asgs,"tomcat.desired")}"
+  force_delete = true
+  launch_configuration = "${aws_launch_configuration.tomcat-fxoffice-lc.name}"
+  target_group_arns = ["${aws_alb_target_group.tomcat-fxoffice-lb-tg.arn}"]
+  tag {
+    key = "ASG-Name"
+    value = "tomcat-fxoffice-asg"
+    propagate_at_launch = true
+  }
+}
 resource "aws_launch_configuration" "tomcat-lc" {
   name = "tomcat-lc"
   image_id = "${lookup(var.amis, var.aws_region)}"
@@ -217,7 +304,18 @@ resource "aws_launch_configuration" "tomcat-lc" {
     volume_size = "${lookup(var.root_vol_size, "tomcat")}"
   }
 }
-
+resource "aws_launch_configuration" "tomcat-fxoffice-lc" {
+  name = "tomcat-lc"
+  image_id = "${lookup(var.amis, var.aws_region)}"
+  instance_type = "${lookup(var.instance_type, "tomcat")}"
+  security_groups = ["${aws_security_group.internal.id}","${aws_security_group.fxoffice.id}"]
+  user_data = "${template_file.userdata_tomcat.rendered}"
+  key_name = "${var.key_name}"
+  iam_instance_profile = "${var.iam_instance_profile}"
+  root_block_device {
+    volume_size = "${lookup(var.root_vol_size, "tomcat")}"
+  }
+}
 resource "aws_elb" "rabbitmq-lb" {
   name = "rabbitmq-lb"
 
