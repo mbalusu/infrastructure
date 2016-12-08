@@ -177,7 +177,7 @@ resource "aws_alb" "tomcat-lb" {
   }
 }
 resource "aws_alb" "tomcat-fxoffice-lb" {
-  name = "tomcat-lb"
+  name = "tomcat-fxoffice-lb"
   internal = false
   subnets = ["${aws_subnet.az1-public.id}","${aws_subnet.az2-public.id}"]
   security_groups = ["${aws_security_group.fxoffice.id}"]
@@ -278,7 +278,7 @@ resource "aws_autoscaling_group" "tomcat-asg" {
   }
 }
 resource "aws_autoscaling_group" "tomcat-fxoffice-asg" {
-  name = "tomcat-asg"
+  name = "tomcat-fxoffice-asg"
   vpc_zone_identifier = ["${aws_subnet.az1-private.id}","${aws_subnet.az2-private.id}"]
   max_size = "${lookup(var.asgs,"tomcat.max")}"
   min_size = "${lookup(var.asgs,"tomcat.min")}"
@@ -305,7 +305,7 @@ resource "aws_launch_configuration" "tomcat-lc" {
   }
 }
 resource "aws_launch_configuration" "tomcat-fxoffice-lc" {
-  name = "tomcat-lc"
+  name = "tomcat-fxoffice-lc"
   image_id = "${lookup(var.amis, var.aws_region)}"
   instance_type = "${lookup(var.instance_type, "tomcat")}"
   security_groups = ["${aws_security_group.internal.id}","${aws_security_group.fxoffice.id}"]
