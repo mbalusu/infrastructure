@@ -270,13 +270,14 @@ resource "aws_autoscaling_group" "tomcat-asg" {
   desired_capacity = "${lookup(var.asgs,"tomcat.desired")}"
   force_delete = true
   launch_configuration = "${aws_launch_configuration.tomcat-lc.name}"
-  target_group_arns = ["${aws_alb_target_group.tomcat-lb-tg.arn}"]
+  target_group_arns = ["${aws_alb_target_group.tomcat-lb-tg.arn}","${aws_alb_target_group.tomcat-fxoffice-lb-tg.arn}"]
   tag {
     key = "ASG-Name"
     value = "tomcat-asg"
     propagate_at_launch = true
   }
 }
+/*
 resource "aws_autoscaling_group" "tomcat-fxoffice-asg" {
   name = "tomcat-fxoffice-asg"
   vpc_zone_identifier = ["${aws_subnet.az1-private.id}","${aws_subnet.az2-private.id}"]
@@ -292,6 +293,7 @@ resource "aws_autoscaling_group" "tomcat-fxoffice-asg" {
     propagate_at_launch = true
   }
 }
+*/
 resource "aws_launch_configuration" "tomcat-lc" {
   name = "tomcat-lc"
   image_id = "${lookup(var.amis, var.aws_region)}"
@@ -304,6 +306,7 @@ resource "aws_launch_configuration" "tomcat-lc" {
     volume_size = "${lookup(var.root_vol_size, "tomcat")}"
   }
 }
+/*
 resource "aws_launch_configuration" "tomcat-fxoffice-lc" {
   name = "tomcat-fxoffice-lc"
   image_id = "${lookup(var.amis, var.aws_region)}"
@@ -316,6 +319,7 @@ resource "aws_launch_configuration" "tomcat-fxoffice-lc" {
     volume_size = "${lookup(var.root_vol_size, "tomcat")}"
   }
 }
+*/
 resource "aws_elb" "rabbitmq-lb" {
   name = "rabbitmq-lb"
 
